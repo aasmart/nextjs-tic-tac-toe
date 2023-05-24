@@ -1,95 +1,129 @@
+'use client'
+
 import Image from 'next/image'
 import styles from './page.module.css'
+import { useState } from 'react'
+
+function Square({value, onSquareClicked}: {value: String, onSquareClicked: () => void}) {
+  return (
+    <button className="flip" onClick={ onSquareClicked }>{ value }</button>
+  )
+}
+
+function Grid({size}: {size: number}) {
+  const [isXNext, setIsXNext] = useState(true)
+  const [squares, setSquares] = useState(Array(size * size).fill(null))
+  const [gameWinner, setGameWinner] = useState<Winner | null>(null)
+
+  function handleClick(index: number) {
+    if(squares[index] || gameWinner) return
+
+    const nextSquares = squares.slice() as Array<string | null>
+    nextSquares[index] = isXNext ? 'X' : 'O'
+    setSquares(nextSquares)
+
+    const winner = determineWinner(size, nextSquares, index)
+    if(winner != null)
+      setGameWinner(winner)
+
+    setIsXNext(!isXNext)
+  }
+
+  let status
+  if(gameWinner)
+    status = `${gameWinner.piece} has won!`
+  else
+    status = `Next Player: ${isXNext ? 'X' : 'O'}`
+
+  const gridSquares = squares.map((val, index) => {
+    return <Square value={val} onSquareClicked={() => handleClick(index)}/>
+  })
+
+  return (
+    <>
+      <h2>{status}</h2>
+      <div className="board">
+        {gridSquares}
+      </div>
+    </>
+  )
+}
 
 export default function Home() {
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    <Grid size={3} />
   )
+}
+
+type Winner = {
+  piece: string,
+  squares: number[]
+}
+
+function indexArrayAsMatrix<T>(
+  arr: T[], 
+  rows: number, columns: number, 
+  row: number, column: number
+): T {
+  if(column >= columns || row >= rows)
+    throw new RangeError(`Attempting to index value [${row},${column}] outside of the matrix's dimensios, [${rows},${columns}]`)
+
+  return arr[row * rows + column]
+}
+
+function determineWinner(size: number, squares: Array<string | null>, placedIndex: number): Winner | null {
+  if(size * size != squares.length)
+    return null
+
+  const piece = squares[placedIndex]
+
+  if(!piece)
+    return null
+
+  const row = Math.floor(placedIndex / size)
+  const column = placedIndex - row * size
+
+  const toIndex = 
+    (rows: number, row: number, column: number) => row * rows + column
+
+  const checkVertical = Array(size).fill(-1)
+  const checkHorizontal = Array(size).fill(-1)
+  const downDiagonal = Array(size).fill(-1)
+  const upDiagonal = Array(size).fill(-1)
+
+  for(let i = 0; i < size; i++) {
+    if(indexArrayAsMatrix(squares, size, size, i, column) === piece)
+      checkVertical[i] = toIndex(size, i, column)
+
+    if(indexArrayAsMatrix(squares, size, size, row, i) === piece)
+      checkHorizontal[i] = toIndex(size, row, i)
+  }
+
+  for(let i = 0; i < size; i++) {
+    if(indexArrayAsMatrix(squares, size, size, i, i) === piece)
+      downDiagonal[i] = toIndex(size, i, i)
+
+    if(indexArrayAsMatrix(squares, size, size, i, (size - 1) - i) === piece)
+      upDiagonal[i] = toIndex(size, i, (size - 1) - i)
+  }
+
+  let winningTitles: number[] = [];
+  if(checkVertical.find(e => e == -1) !== -1)
+    winningTitles = winningTitles.concat(checkVertical)
+  if(checkHorizontal.find(e => e == -1) !== -1)
+    winningTitles = winningTitles.concat(checkHorizontal)
+  if(downDiagonal.find(e => e == -1) !== -1)
+    winningTitles = winningTitles.concat(downDiagonal)
+  if(upDiagonal.find(e => e == -1) !== -1)
+    winningTitles = winningTitles.concat(upDiagonal)
+
+  console.log(winningTitles)
+
+  if(winningTitles.length === 0)
+    return null
+
+  return {
+    piece: piece,
+    squares: winningTitles
+  }
 }
