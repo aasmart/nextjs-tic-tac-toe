@@ -66,7 +66,7 @@ a {
   place-items: center;
 }
 
-.square:hover {
+.square:empty:hover {
   background-color: #222222;
 }
 

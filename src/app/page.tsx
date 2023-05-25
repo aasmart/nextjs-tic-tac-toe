@@ -44,6 +44,8 @@ function Grid({size}: {size: number}) {
   let status
   if(gameWinner)
     status = `${gameWinner.piece} has won!`
+  else if(!gameWinner && !squares.includes(null))
+    status = 'The game has ended in a draw!'
   else
     status = `Next Player: ${isXNext ? 'X' : 'O'}`
 
