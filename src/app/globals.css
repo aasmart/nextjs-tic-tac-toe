@@ -34,12 +34,16 @@ a {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
 
-  width: 10%;
+  width: 20%;
+  min-width: 200px;
+  max-width: 400px;
   aspect-ratio: 1;
+
+  box-shadow: 0 2px 2px black;
 }
 
 .square {
-  font-size: 2rem;
+  font-size: 300%;
   color: white;
   border-radius: 0;
   border: 2px solid black;
@@ -53,7 +57,7 @@ a {
 }
 
 .square:focus-visible {
-  z-index: 1;
+  z-index: 99;
 }
 
 .square::after {
@@ -66,20 +70,35 @@ a {
   place-items: center;
 }
 
-.square:empty:hover {
-  background-color: #222222;
+.square:not(:disabled):hover {
+  background-color: #333333;
 }
 
 @keyframes flip {
   0% {
+    scale: 1;
     transform: rotateY(0);
   }
 
+  10% {
+    transform: rotateY(0);
+  }
+
+  50% {
+    scale: 1.1;
+  }
+
+  90% {
+    transform: rotateY(180deg);
+  }
+
   100% {
+    scale: 1;
     transform: rotateY(180deg);
   }
 }
 
 .flip {
-  animation: flip 750ms forwards;
+  animation: flip 600ms forwards;
+  z-index: 1;
 }

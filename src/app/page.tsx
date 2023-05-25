@@ -3,19 +3,36 @@
 import Image from 'next/image'
 import styles from './page.module.css'
 import { useState } from 'react'
+import { isNull } from 'util'
 
-function Square(
-  {value, onSquareClicked, isWinningTile}: 
-  {value: String, onSquareClicked: () => void, isWinningTile: boolean}
-) {
-  const flip = isWinningTile ? 'flip' : ''
-  const defaultName = 'square'
+function Square({
+  value, 
+  onSquareClicked, 
+  isWinningSquare, 
+  isGameOver,
+  squareFlipDelay
+}: {
+  value: String, 
+  onSquareClicked: () => void, 
+  isWinningSquare: boolean, 
+  isGameOver: boolean,
+  squareFlipDelay: number
+}) {
+  const [isFlipped, setIsFlipped] = useState(false)
+  const flip = isFlipped ? 'flip' : ''
+  const defaultClass = 'square'
+  
+  const isDisabled = (value != null) || isGameOver
+
+  if(isWinningSquare)
+    setTimeout(() => setIsFlipped(true), squareFlipDelay)
 
   return (
     <button 
-      className={`${defaultName} ${flip}`} 
+      className={`${defaultClass} ${flip}`} 
       onClick={ onSquareClicked } 
       data-value={ value}
+      disabled={ isDisabled }
     >
       { value }
     </button>
@@ -23,6 +40,8 @@ function Square(
 }
 
 function Grid({size}: {size: number}) {
+  const SQUARE_FLIP_DELAY = 75
+
   const [isXNext, setIsXNext] = useState(true)
   const [squares, setSquares] = useState(Array(size * size).fill(null))
   const [gameWinner, setGameWinner] = useState<GameWinner | null>(null)
@@ -49,11 +68,19 @@ function Grid({size}: {size: number}) {
   else
     status = `Next Player: ${isXNext ? 'X' : 'O'}`
 
+  let numWinningSquares = 0
   const gridSquares = squares.map((val, index) => {
+    const isWinning = gameWinner?.squares.includes(index) || false
+    const delay = isWinning ? numWinningSquares * SQUARE_FLIP_DELAY : 0
+
+    if(isWinning) numWinningSquares++
+
     return <Square 
       value={val} 
       onSquareClicked={() => handleClick(index)} 
-      isWinningTile={gameWinner?.squares.includes(index) || false}
+      isWinningSquare={isWinning}
+      isGameOver={gameWinner !== null}
+      squareFlipDelay={delay}
     />
   })
 
@@ -134,21 +161,21 @@ function determineWinner(
       upDiagonal[i] = matrixToArrayIndex(size, i, (size - 1) - i)
   }
 
-  let winningTitles: number[] = [];
+  let winningSquares: number[] = [];
   if(!checkVertical.includes(null))
-    winningTitles = winningTitles.concat(checkVertical)
+    winningSquares = winningSquares.concat(checkVertical)
   if(!checkHorizontal.includes(null))
-    winningTitles = winningTitles.concat(checkHorizontal)
+    winningSquares = winningSquares.concat(checkHorizontal)
   if(!downDiagonal.includes(null))
-    winningTitles = winningTitles.concat(downDiagonal)
+    winningSquares = winningSquares.concat(downDiagonal)
   if(!upDiagonal.includes(null))
-    winningTitles = winningTitles.concat(upDiagonal)
+    winningSquares = winningSquares.concat(upDiagonal)
 
-  if(winningTitles.length === 0)
+  if(winningSquares.length === 0)
     return null
 
   return {
     piece: piece,
-    squares: winningTitles
+    squares: winningSquares
   }
 }
