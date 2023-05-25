@@ -44,8 +44,26 @@ a {
   border-radius: 0;
   border: 2px solid black;
   background-color: #444444;
+  position: relative;
+
+  transform-style: preserve-3d;
+  transform: perspective(1000px);
 
   transition: background-color 250ms;
+}
+
+.square:focus-visible {
+  z-index: 1;
+}
+
+.square::after {
+  content: attr(data-value);
+  position: absolute;
+  inset: 0;
+  background-color: green;
+  transform: translateZ(-10px);
+  display: grid;
+  place-items: center;
 }
 
 .square:hover {
@@ -54,18 +72,14 @@ a {
 
 @keyframes flip {
   0% {
-    transform: rotateY(0) scale3d(1, 1, 1);
-  }
-
-  50% {
-    transform: scale3d(2, 2, 1)
+    transform: rotateY(0);
   }
 
   100% {
-    transform: rotateY(360deg) scale3d(1, 1, 1);
+    transform: rotateY(180deg);
   }
 }
 
 .flip {
-  animation: flip 500ms forwards;
+  animation: flip 750ms forwards;
 }

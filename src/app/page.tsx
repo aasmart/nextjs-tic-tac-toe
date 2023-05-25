@@ -4,9 +4,18 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import { useState } from 'react'
 
-function Square({value, onSquareClicked}: {value: String, onSquareClicked: () => void}) {
+function Square({value, onSquareClicked, isWinningTile}: {value: String, onSquareClicked: () => void, isWinningTile: boolean}) {
+  const flip = isWinningTile ? 'flip' : ''
+  const defaultName = 'square'
+
   return (
-    <button className="flip" onClick={ onSquareClicked }>{ value }</button>
+    <button 
+      className={`${defaultName} ${flip}`} 
+      onClick={ onSquareClicked } 
+      data-value={ value}
+    >
+        { value }
+    </button>
   )
 }
 
@@ -36,7 +45,11 @@ function Grid({size}: {size: number}) {
     status = `Next Player: ${isXNext ? 'X' : 'O'}`
 
   const gridSquares = squares.map((val, index) => {
-    return <Square value={val} onSquareClicked={() => handleClick(index)}/>
+    return <Square 
+      value={val} 
+      onSquareClicked={() => handleClick(index)} 
+      isWinningTile={gameWinner?.squares.includes(index) || false}
+    />
   })
 
   return (
