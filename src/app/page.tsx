@@ -4,7 +4,10 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import { useState } from 'react'
 
-function Square({value, onSquareClicked, isWinningTile}: {value: String, onSquareClicked: () => void, isWinningTile: boolean}) {
+function Square(
+  {value, onSquareClicked, isWinningTile}: 
+  {value: String, onSquareClicked: () => void, isWinningTile: boolean}
+) {
   const flip = isWinningTile ? 'flip' : ''
   const defaultName = 'square'
 
@@ -14,7 +17,7 @@ function Square({value, onSquareClicked, isWinningTile}: {value: String, onSquar
       onClick={ onSquareClicked } 
       data-value={ value}
     >
-        { value }
+      { value }
     </button>
   )
 }
@@ -22,7 +25,7 @@ function Square({value, onSquareClicked, isWinningTile}: {value: String, onSquar
 function Grid({size}: {size: number}) {
   const [isXNext, setIsXNext] = useState(true)
   const [squares, setSquares] = useState(Array(size * size).fill(null))
-  const [gameWinner, setGameWinner] = useState<Winner | null>(null)
+  const [gameWinner, setGameWinner] = useState<GameWinner | null>(null)
 
   function handleClick(index: number) {
     if(squares[index] || gameWinner) return
@@ -68,9 +71,17 @@ export default function Home() {
   )
 }
 
-type Winner = {
+type GameWinner = {
   piece: string,
   squares: number[]
+}
+
+function matrixToArrayIndex(
+  rows: number, 
+  row: number, 
+  column: number
+) {
+  return row * rows + column
 }
 
 function indexArrayAsMatrix<T>(
@@ -84,7 +95,11 @@ function indexArrayAsMatrix<T>(
   return arr[row * rows + column]
 }
 
-function determineWinner(size: number, squares: Array<string | null>, placedIndex: number): Winner | null {
+function determineWinner(
+  size: number, 
+  squares: Array<string | null>, 
+  placedIndex: number
+): GameWinner | null {
   if(size * size != squares.length)
     return null
 
@@ -96,41 +111,36 @@ function determineWinner(size: number, squares: Array<string | null>, placedInde
   const row = Math.floor(placedIndex / size)
   const column = placedIndex - row * size
 
-  const toIndex = 
-    (rows: number, row: number, column: number) => row * rows + column
-
-  const checkVertical = Array(size).fill(-1)
-  const checkHorizontal = Array(size).fill(-1)
-  const downDiagonal = Array(size).fill(-1)
-  const upDiagonal = Array(size).fill(-1)
+  const checkVertical = Array(size).fill(null)
+  const checkHorizontal = Array(size).fill(null)
+  const downDiagonal = Array(size).fill(null)
+  const upDiagonal = Array(size).fill(null)
 
   for(let i = 0; i < size; i++) {
     if(indexArrayAsMatrix(squares, size, size, i, column) === piece)
-      checkVertical[i] = toIndex(size, i, column)
+      checkVertical[i] = matrixToArrayIndex(size, i, column)
 
     if(indexArrayAsMatrix(squares, size, size, row, i) === piece)
-      checkHorizontal[i] = toIndex(size, row, i)
+      checkHorizontal[i] = matrixToArrayIndex(size, row, i)
   }
 
   for(let i = 0; i < size; i++) {
     if(indexArrayAsMatrix(squares, size, size, i, i) === piece)
-      downDiagonal[i] = toIndex(size, i, i)
+      downDiagonal[i] = matrixToArrayIndex(size, i, i)
 
     if(indexArrayAsMatrix(squares, size, size, i, (size - 1) - i) === piece)
-      upDiagonal[i] = toIndex(size, i, (size - 1) - i)
+      upDiagonal[i] = matrixToArrayIndex(size, i, (size - 1) - i)
   }
 
   let winningTitles: number[] = [];
-  if(checkVertical.find(e => e == -1) !== -1)
+  if(!checkVertical.includes(null))
     winningTitles = winningTitles.concat(checkVertical)
-  if(checkHorizontal.find(e => e == -1) !== -1)
+  if(!checkHorizontal.includes(null))
     winningTitles = winningTitles.concat(checkHorizontal)
-  if(downDiagonal.find(e => e == -1) !== -1)
+  if(!downDiagonal.includes(null))
     winningTitles = winningTitles.concat(downDiagonal)
-  if(upDiagonal.find(e => e == -1) !== -1)
+  if(!upDiagonal.includes(null))
     winningTitles = winningTitles.concat(upDiagonal)
-
-  console.log(winningTitles)
 
   if(winningTitles.length === 0)
     return null
