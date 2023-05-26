@@ -27,6 +27,8 @@ function Square({
 
   if(isWinningSquare)
     setTimeout(() => setIsFlipped(true), squareFlipDelay)
+  else if(isFlipped)
+    setIsFlipped(false)
 
   return (
     <button 
@@ -40,14 +42,27 @@ function Square({
   )
 }
 
+function Replay({
+  isGameOver,
+  onClick
+}: {
+  isGameOver: boolean,
+  onClick: () => void
+}) {
+  return (
+    <button className='replay' disabled={!isGameOver} onClick={onClick}>Replay</button>
+  )
+}
+
 function Grid({size}: {size: number}) {
   const SQUARE_FLIP_DELAY = 75
 
   const [isXNext, setIsXNext] = useState(true)
   const [squares, setSquares] = useState(Array(size * size).fill(null))
   const [gameWinner, setGameWinner] = useState<GameWinner | null>(null)
+  const [isGameOver, setIsGameOver] = useState(false)
 
-  function handleClick(index: number) {
+  function handleSquareClick(index: number) {
     if(squares[index] || gameWinner) return
 
     const nextSquares = squares.slice() as Array<string | null>
@@ -55,10 +70,19 @@ function Grid({size}: {size: number}) {
     setSquares(nextSquares)
 
     const winner = determineWinner(size, nextSquares, index)
-    if(winner != null)
+    if(winner != null) {
       setGameWinner(winner)
+      setIsGameOver(true)
+    }
 
     setIsXNext(!isXNext)
+  }
+
+  function handleRestartClick() {
+    setIsXNext(true)
+    setSquares(Array(size * size).fill(null))
+    setGameWinner(null)
+    setIsGameOver(false)
   }
 
   let status
@@ -78,9 +102,9 @@ function Grid({size}: {size: number}) {
 
     return <Square 
       value={val} 
-      onSquareClicked={() => handleClick(index)} 
+      onSquareClicked={() => handleSquareClick(index)} 
       isWinningSquare={isWinning}
-      isGameOver={gameWinner !== null}
+      isGameOver={isGameOver}
       squareFlipDelay={delay}
     />
   })
@@ -97,6 +121,7 @@ function Grid({size}: {size: number}) {
       >
         {gridSquares}
       </div>
+      <Replay isGameOver={isGameOver} onClick={() => handleRestartClick()}/>
     </>
   )
 }
