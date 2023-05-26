@@ -1,3 +1,10 @@
+:root {
+  --square-color: #444444;
+  --square-color-darker: #333333;
+  --winning-square-color: green;
+  --square-darken-percent: 75%;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -24,11 +31,6 @@ body {
   gap: 24px;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
 .board {
   display: grid;
 
@@ -46,7 +48,7 @@ a {
   border-radius: 0;
   border: 2px solid black;
   opacity: 1;
-  background-color: #444444;
+  background-color: var(--square-color);
   position: relative;
 
   transform-style: preserve-3d;
@@ -63,14 +65,14 @@ a {
   content: attr(data-value);
   position: absolute;
   inset: 0;
-  background-color: green;
+  background-color: var(--winning-square-color);
   transform: translateZ(-1px);
   display: grid;
   place-items: center;
 }
 
 .square:not(:disabled):hover {
-  background-color: #333333;
+  background-color: var(--square-color-darker);
 }
 
 @keyframes flip {
@@ -106,9 +108,9 @@ a {
 }
 
 .fade {
-  filter: brightness(75%)
+  filter: brightness(var(--square-darken-percent))
 }
 
 .fade::after {
-  background-color: #444444;
+  background-color: var(--square-color);
 }
