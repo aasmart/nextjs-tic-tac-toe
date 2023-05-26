@@ -1,9 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-import styles from './page.module.css'
 import { useState, useRef } from 'react'
-import { clear } from 'console'
 
 type GameFinishState = {
   winningPiece: string,
@@ -113,7 +110,7 @@ function Grid({size}: {size: number}) {
   const reset = useRef(Array(size * size).fill(false))
 
   function handleSquareClick(index: number) {
-    if(squares[index] || gameFinishState.isGameOver || reset.current[index]) return
+    if(squares[index] || gameFinishState.isGameOver || reset.current.includes(true)) return
 
     const nextSquares = squares.slice() as Array<string | null>
     nextSquares[index] = isXNext ? 'X' : 'O'

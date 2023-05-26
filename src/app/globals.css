@@ -4,6 +4,7 @@
   --winning-square-color: green;
   --square-darken-percent: 75%;
   --foreground-color: white;
+  --primar-color: rebeccapurple;
 }
 
 * {
@@ -93,7 +94,7 @@ main h2 {
 }
 
 .square:not(.fade):empty:after {
-  background-color: rebeccapurple;
+  background-color: var(--primar-color);
 }
 
 .square:not(:disabled):hover {
@@ -191,7 +192,7 @@ main h2 {
 
 .restart:focus-visible,
 .restart:not(:disabled):hover {
-  background-color: var(--winning-square-color);
+  background-color: var(--primar-color);
 }
 
 .restart:disabled {
