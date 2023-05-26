@@ -2,7 +2,8 @@
 
 import Image from 'next/image'
 import styles from './page.module.css'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { clear } from 'console'
 
 type GameFinishState = {
   winningPiece: string,
@@ -23,35 +24,70 @@ function Square({
   onSquareClicked, 
   isWinningSquare, 
   isGameOver,
-  squareFlipDelay
+  squareFlipDelay,
+  index,
+  reset
 }: {
-  value: String, 
+  value: string, 
   onSquareClicked: () => void, 
   isWinningSquare: boolean, 
   isGameOver: boolean,
-  squareFlipDelay: number
+  squareFlipDelay: number,
+  index: number,
+  reset: boolean
 }) {
-  const [isFlipped, setIsFlipped] = useState(false)
+  const RESET_FLIP_DELAY = 50
 
-  const flip = isFlipped ? 'flip' : ''
-  const fade = !isWinningSquare && isGameOver ? 'fade' : ''
+  const [isFlipping, setIsFlipping] = useState(false)
+  const [isFaded, setIsFaded] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+
+  const doReset= useRef(false)
+  const resetValue = useRef<string | null>(null)
+  const button = useRef<HTMLButtonElement | null>(null)
+
+  const flip = isResetting ? 'flip-reset' : (isFlipping ? 'flip' : '')
+  const fade = isFaded ? 'fade' : ''
   const defaultClass = 'square'
   
   const isDisabled = (value != null) || isGameOver
 
-  if(isWinningSquare)
-    setTimeout(() => setIsFlipped(true), squareFlipDelay)
-  else if(isFlipped)
-    setIsFlipped(false)
+  if(reset && !doReset.current) {
+    doReset.current = true
+
+    setTimeout(() => {
+      resetValue.current = null
+      setIsFlipping(false)
+      setIsFaded(false)
+      setIsResetting(true)
+
+      button.current?.addEventListener('animationend', e => {
+        setIsResetting(false)
+      })
+    }, index * RESET_FLIP_DELAY)
+  } 
+  
+  if(!isFlipping && isWinningSquare) {
+    setTimeout(() => setIsFlipping(true), squareFlipDelay)
+  } else if(!isFaded && !isWinningSquare && isGameOver) {
+    setIsFaded(true)
+  }
+
+  if(!reset && !isResetting)
+    doReset.current = false
+
+  if(!doReset.current)
+    resetValue.current = value
 
   return (
     <button 
       className={`${defaultClass} ${flip} ${fade}`} 
       onClick={ onSquareClicked } 
-      data-value={ value}
+      data-value={ resetValue.current }
       disabled={ isDisabled }
+      ref={button}
     >
-      { value }
+      {resetValue.current}
     </button>
   )
 }
@@ -74,9 +110,10 @@ function Grid({size}: {size: number}) {
   const [isXNext, setIsXNext] = useState(true)
   const [squares, setSquares] = useState(Array(size * size).fill(null))
   const [gameFinishState, setGameFinishState] = useState(DEFAULT_GAME_STATE)
+  const reset = useRef(Array(size * size).fill(false))
 
   function handleSquareClick(index: number) {
-    if(squares[index] || gameFinishState.isGameOver) return
+    if(squares[index] || gameFinishState.isGameOver || reset.current[index]) return
 
     const nextSquares = squares.slice() as Array<string | null>
     nextSquares[index] = isXNext ? 'X' : 'O'
@@ -92,8 +129,9 @@ function Grid({size}: {size: number}) {
 
   function handleReplayClick() {
     setIsXNext(true)
-    setSquares(Array(size * size).fill(null))
     setGameFinishState(DEFAULT_GAME_STATE)
+    setSquares(Array(size * size).fill(null))
+    reset.current = reset.current.fill(true)
   }
 
   let status
@@ -111,12 +149,19 @@ function Grid({size}: {size: number}) {
 
     if(isWinning) numWinningSquares++
 
+    const doReset = reset.current[index]
+    if(doReset)
+      reset.current[index] = false
+
     return <Square 
+      key={index}
       value={val} 
       onSquareClicked={() => handleSquareClick(index)} 
       isWinningSquare={isWinning}
       isGameOver={gameFinishState.isGameOver}
       squareFlipDelay={delay}
+      index={index}
+      reset={doReset}
     />
   })
 
@@ -143,7 +188,7 @@ function Grid({size}: {size: number}) {
 
 export default function Home() {
   return (
-    <Grid size={5} />
+    <Grid size={3} />
   )
 }
 

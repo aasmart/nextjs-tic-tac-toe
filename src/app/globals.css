@@ -92,6 +92,10 @@ main h2 {
   place-items: center;
 }
 
+.square:not(.fade):empty:after {
+  background-color: rebeccapurple;
+}
+
 .square:not(:disabled):hover {
   background-color: var(--square-color-darker);
 }
@@ -135,23 +139,28 @@ main h2 {
   }
 
   50% {
-    scale: 1.2;
+    scale: 1.1;
     translate: 0 0 100px;
   }
 
   90% {
-    rotate: y 360deg;
+    rotate: y 720deg;
   }
 
   100% {
     scale: 1;
-    rotate: y 360deg;
+    rotate: y 720deg;
     translate: 0 0 0;
   }
 }
 
 .flip {
   animation: flip 600ms forwards;
+  z-index: 1;
+}
+
+.flip-reset {
+  animation: flip-reset 1200ms normal;
   z-index: 1;
 }
 
