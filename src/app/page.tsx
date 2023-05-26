@@ -20,6 +20,7 @@ function Square({
 }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const flip = isFlipped ? 'flip' : ''
+  const fade = !isWinningSquare && isGameOver ? 'fade' : ''
   const defaultClass = 'square'
   
   const isDisabled = (value != null) || isGameOver
@@ -29,7 +30,7 @@ function Square({
 
   return (
     <button 
-      className={`${defaultClass} ${flip}`} 
+      className={`${defaultClass} ${flip} ${fade}`} 
       onClick={ onSquareClicked } 
       data-value={ value}
       disabled={ isDisabled }
@@ -87,7 +88,13 @@ function Grid({size}: {size: number}) {
   return (
     <>
       <h2>{status}</h2>
-      <div className="board">
+      <div 
+        className="board"
+        style={{
+          gridTemplateColumns: `repeat(${size}, 1fr)`,
+          gridTemplateRows: `repeat(${size}, 1fr)`
+        }}
+      >
         {gridSquares}
       </div>
     </>

@@ -31,12 +31,10 @@ a {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
 
-  width: 20%;
-  min-width: 200px;
-  max-width: 400px;
+  width: 40%;
+  min-width: 400px;
+  max-width: 800px;
   aspect-ratio: 1;
 
   box-shadow: 0 2px 2px black;
@@ -47,13 +45,14 @@ a {
   color: white;
   border-radius: 0;
   border: 2px solid black;
+  opacity: 1;
   background-color: #444444;
   position: relative;
 
   transform-style: preserve-3d;
   transform: perspective(1000px);
 
-  transition: background-color 250ms;
+  transition: background-color 250ms, filter 500ms;
 }
 
 .square:focus-visible {
@@ -77,6 +76,7 @@ a {
 @keyframes flip {
   0% {
     scale: 1;
+    translate: 0 0 0;
     transform: rotateY(0);
   }
 
@@ -86,6 +86,7 @@ a {
 
   50% {
     scale: 1.1;
+    translate: 0 0 100px;
   }
 
   90% {
@@ -95,10 +96,19 @@ a {
   100% {
     scale: 1;
     transform: rotateY(180deg);
+    translate: 0 0 0;
   }
 }
 
 .flip {
   animation: flip 600ms forwards;
   z-index: 1;
+}
+
+.fade {
+  filter: brightness(75%)
+}
+
+.fade::after {
+  background-color: #444444;
 }
