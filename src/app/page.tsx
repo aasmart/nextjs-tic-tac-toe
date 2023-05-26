@@ -19,6 +19,7 @@ function Square({
   squareFlipDelay: number
 }) {
   const [isFlipped, setIsFlipped] = useState(false)
+
   const flip = isFlipped ? 'flip' : ''
   const fade = !isWinningSquare && isGameOver ? 'fade' : ''
   const defaultClass = 'square'
@@ -59,11 +60,10 @@ function Grid({size}: {size: number}) {
 
   const [isXNext, setIsXNext] = useState(true)
   const [squares, setSquares] = useState(Array(size * size).fill(null))
-  const [gameWinner, setGameWinner] = useState<GameWinner | null>(null)
-  const [isGameOver, setIsGameOver] = useState(false)
+  const [gameFinishState, setGameFinishState] = useState(DEFAULT_GAME_STATE)
 
   function handleSquareClick(index: number) {
-    if(squares[index] || gameWinner) return
+    if(squares[index] || gameFinishState.isGameOver) return
 
     const nextSquares = squares.slice() as Array<string | null>
     nextSquares[index] = isXNext ? 'X' : 'O'
@@ -71,8 +71,7 @@ function Grid({size}: {size: number}) {
 
     const winner = determineWinner(size, nextSquares, index)
     if(winner != null) {
-      setGameWinner(winner)
-      setIsGameOver(true)
+      setGameFinishState(winner)
     }
 
     setIsXNext(!isXNext)
@@ -81,21 +80,20 @@ function Grid({size}: {size: number}) {
   function handleRestartClick() {
     setIsXNext(true)
     setSquares(Array(size * size).fill(null))
-    setGameWinner(null)
-    setIsGameOver(false)
+    setGameFinishState(DEFAULT_GAME_STATE)
   }
 
   let status
-  if(gameWinner)
-    status = `${gameWinner.piece} has won!`
-  else if(!gameWinner && !squares.includes(null))
+  if(gameFinishState.isDraw)
     status = 'The game has ended in a draw!'
+  else if(gameFinishState.isGameOver)
+    status = `${gameFinishState.winningPiece} has won!`
   else
     status = `Next Player: ${isXNext ? 'X' : 'O'}`
 
   let numWinningSquares = 0
   const gridSquares = squares.map((val, index) => {
-    const isWinning = gameWinner?.squares.includes(index) || false
+    const isWinning = gameFinishState?.winningSquares.includes(index) || false
     const delay = isWinning ? numWinningSquares * SQUARE_FLIP_DELAY : 0
 
     if(isWinning) numWinningSquares++
@@ -104,7 +102,7 @@ function Grid({size}: {size: number}) {
       value={val} 
       onSquareClicked={() => handleSquareClick(index)} 
       isWinningSquare={isWinning}
-      isGameOver={isGameOver}
+      isGameOver={gameFinishState.isGameOver}
       squareFlipDelay={delay}
     />
   })
@@ -115,13 +113,13 @@ function Grid({size}: {size: number}) {
       <div 
         className="board"
         style={{
-          gridTemplateColumns: `repeat(${size}, 1fr)`,
-          gridTemplateRows: `repeat(${size}, 1fr)`
+          gridTemplateColumns: `repeat(${size}, var(--grid-square-size))`,
+          gridTemplateRows: `repeat(${size}, var(--grid-square-size))`
         }}
       >
         {gridSquares}
       </div>
-      <Replay isGameOver={isGameOver} onClick={() => handleRestartClick()}/>
+      <Replay isGameOver={gameFinishState.isGameOver} onClick={() => handleRestartClick()}/>
     </>
   )
 }
@@ -132,9 +130,18 @@ export default function Home() {
   )
 }
 
-type GameWinner = {
-  piece: string,
-  squares: number[]
+type GameFinishState = {
+  winningPiece: string,
+  winningSquares: number[],
+  isGameOver: boolean,
+  isDraw: boolean
+}
+
+const DEFAULT_GAME_STATE: GameFinishState = {
+  winningPiece: '',
+  winningSquares: [],
+  isGameOver: false,
+  isDraw: false
 }
 
 function matrixToArrayIndex(
@@ -160,14 +167,14 @@ function determineWinner(
   size: number, 
   squares: Array<string | null>, 
   placedIndex: number
-): GameWinner | null {
+): GameFinishState {
   if(size * size != squares.length)
-    return null
+    return DEFAULT_GAME_STATE
 
   const piece = squares[placedIndex]
 
   if(!piece)
-    return null
+    return DEFAULT_GAME_STATE
 
   const row = Math.floor(placedIndex / size)
   const column = placedIndex - row * size
@@ -204,10 +211,17 @@ function determineWinner(
     winningSquares = winningSquares.concat(upDiagonal)
 
   if(winningSquares.length === 0)
-    return null
+    return {
+      winningPiece: '',
+      winningSquares: [],
+      isGameOver: !squares.includes(null),
+      isDraw: !squares.includes(null)
+    }
 
   return {
-    piece: piece,
-    squares: winningSquares
+    winningPiece: piece,
+    winningSquares: winningSquares,
+    isGameOver: true,
+    isDraw: false
   }
 }

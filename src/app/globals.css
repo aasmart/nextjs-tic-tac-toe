@@ -32,12 +32,9 @@ body {
 }
 
 .board {
-  display: grid;
+  --grid-square-size: 100px;
 
-  width: 40%;
-  min-width: 400px;
-  max-width: 800px;
-  aspect-ratio: 1;
+  display: grid;
 
   box-shadow: 0 2px 2px black;
 }
@@ -54,7 +51,7 @@ body {
   transform-style: preserve-3d;
   transform: perspective(1000px);
 
-  transition: background-color 250ms, filter 500ms, color 100ms;
+  transition: background-color 250ms, color 100ms;
 }
 
 .square:not(:empty) {
@@ -83,11 +80,11 @@ body {
   0% {
     scale: 1;
     translate: 0 0 0;
-    transform: rotateY(0);
+    rotate: y 0;
   }
 
   10% {
-    transform: rotateY(0);
+    rotate: y 0;
   }
 
   50% {
@@ -96,12 +93,39 @@ body {
   }
 
   90% {
-    transform: rotateY(180deg);
+    rotate: y 180deg;
   }
 
   100% {
     scale: 1;
-    transform: rotateY(180deg);
+    rotate: y 180deg;
+    translate: 0 0 0;
+  }
+}
+
+@keyframes flip-reset {
+  0% {
+    scale: 1;
+    translate: 0 0 0;
+    rotate: y 0;
+  }
+
+  10% {
+    rotate: y 0;
+  }
+
+  50% {
+    scale: 1.2;
+    translate: 0 0 100px;
+  }
+
+  90% {
+    rotate: y 360deg;
+  }
+
+  100% {
+    scale: 1;
+    rotate: y 360deg;
     translate: 0 0 0;
   }
 }
@@ -112,6 +136,7 @@ body {
 }
 
 .fade {
+  transition: filter 500ms;
   filter: brightness(var(--square-darken-percent))
 }
 
