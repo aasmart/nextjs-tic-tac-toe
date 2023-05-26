@@ -3,7 +3,20 @@
 import Image from 'next/image'
 import styles from './page.module.css'
 import { useState } from 'react'
-import { isNull } from 'util'
+
+type GameFinishState = {
+  winningPiece: string,
+  winningSquares: number[],
+  isGameOver: boolean,
+  isDraw: boolean
+}
+
+const DEFAULT_GAME_STATE: GameFinishState = {
+  winningPiece: '',
+  winningSquares: [],
+  isGameOver: false,
+  isDraw: false
+}
 
 function Square({
   value, 
@@ -43,15 +56,15 @@ function Square({
   )
 }
 
-function Replay({
-  isGameOver,
-  onClick
+function Restart({
+  onClick,
+  isBoardEmpty,
 }: {
-  isGameOver: boolean,
-  onClick: () => void
+  onClick: () => void,
+  isBoardEmpty: boolean
 }) {
   return (
-    <button className='replay' disabled={!isGameOver} onClick={onClick}>Replay</button>
+    <button className='restart' disabled={isBoardEmpty} onClick={onClick}>Restart Game</button>
   )
 }
 
@@ -77,7 +90,7 @@ function Grid({size}: {size: number}) {
     setIsXNext(!isXNext)
   }
 
-  function handleRestartClick() {
+  function handleReplayClick() {
     setIsXNext(true)
     setSquares(Array(size * size).fill(null))
     setGameFinishState(DEFAULT_GAME_STATE)
@@ -108,7 +121,7 @@ function Grid({size}: {size: number}) {
   })
 
   return (
-    <>
+    <main>
       <h2>{status}</h2>
       <div 
         className="board"
@@ -119,29 +132,19 @@ function Grid({size}: {size: number}) {
       >
         {gridSquares}
       </div>
-      <Replay isGameOver={gameFinishState.isGameOver} onClick={() => handleRestartClick()}/>
-    </>
+      <div className='inputs'>
+        <Restart 
+          isBoardEmpty={!squares.some(e => e !== null)} 
+          onClick={() => handleReplayClick()}/>
+      </div>
+    </main>
   )
 }
 
 export default function Home() {
   return (
-    <Grid size={3} />
+    <Grid size={5} />
   )
-}
-
-type GameFinishState = {
-  winningPiece: string,
-  winningSquares: number[],
-  isGameOver: boolean,
-  isDraw: boolean
-}
-
-const DEFAULT_GAME_STATE: GameFinishState = {
-  winningPiece: '',
-  winningSquares: [],
-  isGameOver: false,
-  isDraw: false
 }
 
 function matrixToArrayIndex(
