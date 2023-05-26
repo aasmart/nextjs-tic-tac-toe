@@ -44,7 +44,7 @@ body {
 
 .square {
   font-size: 300%;
-  color: white;
+  color: var(--square-color);
   border-radius: 0;
   border: 2px solid black;
   opacity: 1;
@@ -54,7 +54,11 @@ body {
   transform-style: preserve-3d;
   transform: perspective(1000px);
 
-  transition: background-color 250ms, filter 500ms;
+  transition: background-color 250ms, filter 500ms, color 100ms;
+}
+
+.square:not(:empty) {
+  color: white;
 }
 
 .square:focus-visible {
