@@ -1,20 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-
-type GameFinishState = {
-  winningPiece: string,
-  winningSquares: number[],
-  isGameOver: boolean,
-  isDraw: boolean
-}
-
-const DEFAULT_GAME_STATE: GameFinishState = {
-  winningPiece: '',
-  winningSquares: [],
-  isGameOver: false,
-  isDraw: false
-}
+import { GameFinishState, DEFAULT_GAME_STATE, determineWinner } from './gamelogic'
 
 function Square({
   value, 
@@ -116,13 +103,19 @@ function Grid({size}: {size: number}) {
     nextSquares[index] = isXNext ? 'X' : 'O'
     setSquares(nextSquares)
 
-    const winner = determineWinner(size, nextSquares, index)
+    const winner = determineWinner(nextSquares, size)
     if(winner != null) {
       setGameFinishState(winner)
     }
 
     setIsXNext(!isXNext)
   }
+
+  // if(!isXNext) {
+  //   const pos = minimax(size, squares, false, 0, 1000).index
+  //   console.log(pos)
+  //   handleSquareClick(pos)
+  // }
 
   function handleReplayClick() {
     setIsXNext(true)
@@ -187,86 +180,4 @@ export default function Home() {
   return (
     <Grid size={3} />
   )
-}
-
-function matrixToArrayIndex(
-  rows: number, 
-  row: number, 
-  column: number
-) {
-  return row * rows + column
-}
-
-function indexArrayAsMatrix<T>(
-  arr: T[], 
-  rows: number, columns: number, 
-  row: number, column: number
-): T {
-  if(column >= columns || row >= rows)
-    throw new RangeError(`Attempting to index value [${row},${column}] outside of the matrix's dimensios, [${rows},${columns}]`)
-
-  return arr[row * rows + column]
-}
-
-function determineWinner(
-  size: number, 
-  squares: Array<string | null>, 
-  placedIndex: number
-): GameFinishState {
-  if(size * size != squares.length)
-    return DEFAULT_GAME_STATE
-
-  const piece = squares[placedIndex]
-
-  if(!piece)
-    return DEFAULT_GAME_STATE
-
-  const row = Math.floor(placedIndex / size)
-  const column = placedIndex - row * size
-
-  const checkVertical = Array(size).fill(null)
-  const checkHorizontal = Array(size).fill(null)
-  const downDiagonal = Array(size).fill(null)
-  const upDiagonal = Array(size).fill(null)
-
-  for(let i = 0; i < size; i++) {
-    if(indexArrayAsMatrix(squares, size, size, i, column) === piece)
-      checkVertical[i] = matrixToArrayIndex(size, i, column)
-
-    if(indexArrayAsMatrix(squares, size, size, row, i) === piece)
-      checkHorizontal[i] = matrixToArrayIndex(size, row, i)
-  }
-
-  for(let i = 0; i < size; i++) {
-    if(indexArrayAsMatrix(squares, size, size, i, i) === piece)
-      downDiagonal[i] = matrixToArrayIndex(size, i, i)
-
-    if(indexArrayAsMatrix(squares, size, size, i, (size - 1) - i) === piece)
-      upDiagonal[i] = matrixToArrayIndex(size, i, (size - 1) - i)
-  }
-
-  let winningSquares: number[] = [];
-  if(!checkVertical.includes(null))
-    winningSquares = winningSquares.concat(checkVertical)
-  if(!checkHorizontal.includes(null))
-    winningSquares = winningSquares.concat(checkHorizontal)
-  if(!downDiagonal.includes(null))
-    winningSquares = winningSquares.concat(downDiagonal)
-  if(!upDiagonal.includes(null))
-    winningSquares = winningSquares.concat(upDiagonal)
-
-  if(winningSquares.length === 0)
-    return {
-      winningPiece: '',
-      winningSquares: [],
-      isGameOver: !squares.includes(null),
-      isDraw: !squares.includes(null)
-    }
-
-  return {
-    winningPiece: piece,
-    winningSquares: winningSquares,
-    isGameOver: true,
-    isDraw: false
-  }
 }
