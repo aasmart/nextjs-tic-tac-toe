@@ -3,7 +3,7 @@ export type GameFinishState = {
     winningSquares: number[],
     isGameOver: boolean,
     isDraw: boolean
-  }
+}
   
 export const DEFAULT_GAME_STATE: GameFinishState = {
     winningPiece: '',
@@ -36,7 +36,7 @@ const allEqual = (arr: any[]) =>
 const range = (start: number, stop: number, step: number) =>
   Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step);
 
-export function determineWinner(squares: Array<string | null>, boardSize: number): GameFinishState {
+export function getWinState(squares: Array<string | null>, boardSize: number): GameFinishState {
     const gridMatrix = arrayToMatrix(squares, boardSize, boardSize)
 
     const winningSquares: number[] = []
@@ -66,4 +66,113 @@ export function determineWinner(squares: Array<string | null>, boardSize: number
         isGameOver: !squares.includes(null) || winningSquares.length > 0,
         isDraw: !squares.includes(null) && winningSquares.length === 0
     }
+}
+
+function score(
+    squares: Array<string | null>, 
+    boardSize: number, 
+    player: string,
+    opponent: string,
+    depth: number
+): number {
+    const state = getWinState(squares, boardSize)
+
+    if(state.winningPiece === player)
+        return 10 - depth
+    else if(state.winningPiece === opponent)
+        return depth - 10 
+    else
+        return 0
+}
+
+function getAllPossibleStates(squares: Array<string | null>, player: string): Map<Array<string | null>, number> {
+    const states = new Map<Array<string | null>, number>()
+
+    for(let i = 0; i < squares.length; i++) {
+        if(squares[i]) continue
+
+        const newState = squares.slice()
+        newState[i] = player
+        states.set(newState, i)
+    }
+
+    return states
+}
+
+function minimax(
+    squares: Array<string | null>, 
+    boardSize: number, 
+    player: string,
+    opponent: string,
+    maximize: boolean,
+    depth: number,
+    alpha: number,
+    beta: number,
+    maxDepth: number = 10
+): number {
+    if(getWinState(squares, boardSize).isGameOver || depth >= maxDepth) {
+        return score(squares, boardSize, player, opponent, depth)
+    }
+
+    const states = getAllPossibleStates(squares, player)
+
+    if(maximize) {
+        let bestScore = -Infinity
+        states.forEach((val, state) => {
+            const result = minimax(state, boardSize, opponent, player, false, depth + 1, alpha, beta, maxDepth)
+            
+            if(result >= bestScore && val != -1) {
+                bestScore = result
+
+                if(bestScore >= beta)
+                    return
+
+                alpha = Math.max(alpha, bestScore)
+            }
+        })
+
+        return bestScore
+    } else {
+        let bestScore = Infinity
+        states.forEach((val, state) => {
+            const result = minimax(state, boardSize, opponent, player, true, depth + 1, alpha, beta, maxDepth)
+            
+            if(result <= bestScore && val != -1) {
+                bestScore = result
+
+                if(bestScore <= alpha)
+                    return
+
+                beta = Math.min(beta, bestScore)
+            }
+        })
+        
+        return bestScore
+    }
+}
+
+export function getBestMove(
+    squares: Array<string | null>, 
+    boardSize: number, 
+    player: string,
+    opponent: string,
+    maxDepth: number = 100
+): number {
+    let score = -Infinity
+    let bestMove = -1
+
+    getAllPossibleStates(squares, player).forEach((val, state) => {
+        let curScore = minimax(state, boardSize, opponent, player, false, 0, -100, 100, maxDepth)
+
+        if(curScore >= score) {
+            score = curScore
+            bestMove = val
+        }
+    })
+
+    // Force the stupid algorithm to pick the middle if it's empty
+    if(squares.filter(e => e).length <= 1 && !squares[Math.floor(squares.length / 2)])
+        return Math.floor(squares.length / 2)
+
+    return bestMove
 }

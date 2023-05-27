@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { GameFinishState, DEFAULT_GAME_STATE, determineWinner } from './gamelogic'
+import { GameFinishState, DEFAULT_GAME_STATE, getWinState, getBestMove } from './gamelogic'
 
 function Square({
   value, 
@@ -103,7 +103,7 @@ function Grid({size}: {size: number}) {
     nextSquares[index] = isXNext ? 'X' : 'O'
     setSquares(nextSquares)
 
-    const winner = determineWinner(nextSquares, size)
+    const winner = getWinState(nextSquares, size)
     if(winner != null) {
       setGameFinishState(winner)
     }
@@ -111,17 +111,16 @@ function Grid({size}: {size: number}) {
     setIsXNext(!isXNext)
   }
 
-  // if(!isXNext) {
-  //   const pos = minimax(size, squares, false, 0, 1000).index
-  //   console.log(pos)
-  //   handleSquareClick(pos)
-  // }
-
   function handleReplayClick() {
     setIsXNext(true)
     setGameFinishState(DEFAULT_GAME_STATE)
     setSquares(Array(size * size).fill(null))
     reset.current = reset.current.fill(true)
+  }
+
+  if(!isXNext) {
+    const pos = getBestMove(squares, size, 'O', 'X', 10)
+    handleSquareClick(pos)
   }
 
   let status
