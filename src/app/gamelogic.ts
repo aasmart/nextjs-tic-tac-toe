@@ -24,11 +24,14 @@ function arrayToMatrix<T>(arr: Array<T>, rows: number, columns: number): Array<A
     return matrix
 }
 
-const arrayColumn = (matrix: Array<Array<any>>, column: number) => matrix.map(x => x[column]);
-const arrayDiagonal = (matrix: Array<Array<any>>, minor: boolean) => {
-    return matrix.map((x,index) => x[minor ? matrix[index].length - index - 1 : index])
-}
-const allEqual = (arr: any[]) => arr.every(val => val === arr[0])
+const arrayColumn = (matrix: Array<Array<any>>, column: number) => 
+    matrix.map(x => x[column]);
+
+const arrayDiagonal = (matrix: Array<Array<any>>, minor: boolean) =>
+    matrix.map((x,index) => x[minor ? matrix[index].length - index - 1 : index])
+
+const allEqual = (arr: any[]) => 
+    arr.every(val => val === arr[0])
 
 const range = (start: number, stop: number, step: number) =>
   Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step);
