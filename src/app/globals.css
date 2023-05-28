@@ -42,18 +42,24 @@ main {
 
 @media (max-width: 700px) {
   main {
-    grid-template-columns: 1fr;
+    grid-template-columns: 100%;
     grid-template-rows: 40px 1fr 1fr;
     grid-template-areas: 
     "head"
     "board"
     "buttons";
   }
+
+  main h2 {
+    max-width: 200px;
+  }
 }
 
 main h2 {
   grid-area: head;
   place-self: center;
+  text-align: center;
+  width: 100%;
 }
 
 .board {
